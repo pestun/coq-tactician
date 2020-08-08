@@ -1,1 +1,1 @@
-bin: [ ./tactician ]
+bin: [ "tactician" ]
