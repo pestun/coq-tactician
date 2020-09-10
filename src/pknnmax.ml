@@ -97,49 +97,6 @@ module MakeNaiveKnn (T : FeatureType): (KnnType with type feature = T.feature an
 
     let count db = db.length
 
-  end
-
-open Tactic_learner_internal
-open Learner_helper
-
-let proof_state_feats_to_feats {hypotheses = hyps; goal = goal} =
-  let s2is = List.map (function
-      | Leaf s -> int_of_string s
-      | _ -> assert false) in
-  let hf = List.map (fun (id, hyp) -> match hyp with
-      | Node [Leaf "LocalAssum"; Node fs] -> s2is fs
-      | Node [Leaf "LocalDef"; Node fs1; Node fs2] -> s2is (fs1 @ fs2)
-      | _ -> assert false
-    ) hyps in
-  let gf = match goal with
-    | Node gf -> s2is gf
-    | _ -> assert false in
-  gf @ List.flatten hf
-
-let proof_states_feats_to_feats ls =
-  let feats = List.flatten (List.map proof_state_feats_to_feats ls) in
-  (*let feats = List.map Hashtbl.hash feats in*)
-  List.sort(*_uniq*) Int.compare feats
-
-module ConversionModule: TacticianLearnerType = struct
-
-  module Knn = MakeNaiveKnn (struct
-      type feature = int
-      type obj = tactic
-      let compare = compare
-      let equal = (=)
-      let hash = Hashtbl.hash
-    end)
-
-  type t  = Knn.t
-  let create = Knn.create
-  let add db ~before:b tac ~after:a =
-    let feats = proof_states_feats_to_feats b in
-    Knn.add db feats tac
-  let predict db f =
-    let feats = proof_states_feats_to_feats f in
-    List.map (fun (a, b, c) -> (a, (focus_first f), c)) (Knn.knn db feats)
-
 end
 
 module StringNaiveKnn = MakeNaiveKnn (struct
@@ -156,7 +113,7 @@ module IntNaiveKnn = MakeNaiveKnn (struct
                                           let compare = compare
                                           let equal = (=)
                                           let hash = Hashtbl.hash
-                                        end)
+                                      end)
 
 module MakeRandomKnn (T : FeatureType): (KnnType with type feature = T.feature and type obj = T.obj) = struct
 
