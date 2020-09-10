@@ -148,7 +148,7 @@ let dbsingle = Knn.create ()
 let db_test : Knn.t ref = ref dbsingle
 let just_classified = ref false
 let current_int64 = ref Int64.minus_one
-let int64_to_knn : (Int64.t, Knn.t) Hashtbl.t = Hashtbl.create 10
+let int64_to_knn : (Int64.t, Knn.t * exn option) Hashtbl.t = Hashtbl.create 10
 
 let current_name = ref (Names.Id.of_string "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
@@ -207,8 +207,8 @@ let add_to_db2 ((before, obj) : Proofview.Goal.t * (Tacexpr.raw_tactic_expr * st
                 (after : Proofview.Goal.t list) =
   let feat = goal_to_features before in
   add_to_db (feat, obj);
-  let db = Hashtbl.find int64_to_knn !current_int64 in
-  Hashtbl.replace int64_to_knn !current_int64 (Knn.add db feat obj);
+  let db, exn = Hashtbl.find int64_to_knn !current_int64 in
+  Hashtbl.replace int64_to_knn !current_int64 (Knn.add db feat obj, exn);
   if !featureprinting then (
     let h s = string_of_int (Hashtbl.hash s) in
     (* let l2s fs = "[" ^ (String.concat ", " (List.map (fun x -> string_of_int x) fs)) ^ "]" in *)
@@ -840,14 +840,22 @@ let pre_vernac_solve pstate id =
   (* print_endline ("db_test: " ^ string_of_int (Knn.count !db_test));
    * print_endline ("id: " ^ (Int64.to_string id)); *)
   if not !just_classified then (
+    let db, exn = Hashtbl.find int64_to_knn id in
     List.iter (fun (fl, obj) -> add_to_db (fl, obj))
-      (Knn.tolist (Hashtbl.find int64_to_knn id));
+      (Knn.tolist db);
     Hashtbl.remove int64_to_knn id;
-    true
+    match exn with
+    | None -> true
+    | Some exn -> raise exn
   ) else (
-    Hashtbl.add int64_to_knn id (Knn.create ());
+    Hashtbl.add int64_to_knn id (Knn.create (), None);
     false
   )
+
+let save_exn id exn =
+  match Hashtbl.find_opt int64_to_knn id with
+  | Some (v, None) -> Hashtbl.replace int64_to_knn id (v, Some exn)
+  | _ -> assert false (* Should not happen *)
 
 let hide_interp_t global t ot transform =
   let open Proofview.Notations in
