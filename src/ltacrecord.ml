@@ -701,7 +701,7 @@ let precord_tac () = Proofview.Goal.enter
 
 let record_tac2 (tac : string) =
   let open Proofview.Notations in
-  if (String.equal tac "suggest" || String.equal tac "search") then Proofview.tclUNIT () else
+  if (String.equal tac "admit" || String.equal tac "suggest" || String.equal tac "search") then Proofview.tclUNIT () else
     Proofview.Goal.goals >>= (fun gls ->
         record_map gls (fun x -> x) >>= fun gls ->
         (*let tac_str = Pp.string_of_ppcmds (Pptactic.pr_glob_tactic env tac) in*)
