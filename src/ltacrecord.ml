@@ -647,10 +647,11 @@ let userPredict = Proofview.Goal.enter
     let r = List.map (fun (x, (y, z, q)) -> (x, z, q)) r in
     let env = Proofview.Goal.env gl in
     let ist = Genintern.empty_glob_sign env in
-    let r = List.map (fun (x, y, z) ->
-        (x,
-         Tactic_constr_map.tactic_constr_map (Proofview.Goal.hyps gl)
-           (Tacintern.intern_pure_tactic ist y), z)) r in
+    let r = List.filter_map (fun (x, y, z) ->
+        try Some (x,
+                  Tactic_constr_map.tactic_constr_map (Proofview.Goal.hyps gl)
+                     (Tacintern.intern_pure_tactic ist y), z)
+         with e -> None) r in
     let r = List.map (fun (x, y, _) -> (x, y)) r in
     (* Print predictions *)
     (Proofview.tclLIFT (Proofview.NonLogical.print_info (print_rank env r))))
