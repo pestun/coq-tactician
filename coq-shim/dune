@@ -17,8 +17,8 @@
  (package coq-tactician)
 )
 (install
- (files injection-flags)
- (section etc)
+ (files (injection-flags as etc/injection-flags))
+ (section share)
  (package coq-tactician)
 )
 (install
