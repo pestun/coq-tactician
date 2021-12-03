@@ -4,14 +4,14 @@
 
 (generate_opam_files true)
 
-(source (github coq-tactician/coq-tactician))
+;(source (github coq-tactician/coq-tactician))
 (homepage "https://coq-tactician.github.io")
 (authors "Lasse Blaauwbroek <lasse@blaauwbroek.eu>")
 (maintainers "Lasse Blaauwbroek <lasse@blaauwbroek.eu>")
 
 (package
   (name coq-tactician)
-  (version 8.11.dev)
+  (version 8.11.dev.1)
   (synopsis "Tactician: A Seamless, Interactive Tactic Learner and Prover for Coq")
   (description "Tactician is a tactic learner and prover for the Coq Proof Assistant.
 The system will help users make tactical proof decisions while they retain
